@@ -21,7 +21,10 @@ var StartState = function() {
     init: function(_global) {
       global = _global;
     },
-    preload: function(){},
+    preload: function(){
+      game.load.image('ninsuke', '../../../common/img/block.png', 32, 32);
+      game.load.image('wall', '../../../common/img/block_min.png');
+    },
     create: create,
     update: function(){},
     render: function(){}

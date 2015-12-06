@@ -28,7 +28,7 @@ var EventBroker = function() {
   }
   
   function clearSubscribe(subject, id) {
-    get(subject)[id] = null;// FIXME clear key
+    delete get(subject)[id];
   }
   
   function publish(subject) {
