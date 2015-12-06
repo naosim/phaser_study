@@ -15,7 +15,7 @@ EventBroker.prototype.clearSubscribe = function(subject, id){
 EventBroker.prototype.count = 0;
 EventBroker.prototype.getNextId = function() {
   this.count++;
-  return Date.now + '_' + this.count;
+  return Date.now() + '_' + this.count;
 }
 EventBroker.prototype.create = function(subject){
   this.subjects[subject] = {}; 
@@ -47,7 +47,7 @@ EventBroker.prototype.publish = function(subject){
 };
 
 function Observable(){
-  this.events = new EventBroker;
+  this.events = new EventBroker();
   this.on = this.events.subscribe.bind(this.events);
 };
 
