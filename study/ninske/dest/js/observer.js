@@ -1,54 +1,55 @@
-var EventBroker = function EventBroker(){
-  this.subjects = {};
-};
-
-EventBroker.prototype.subscribe = function(subject,callback){
-  var id = this.getNextId();
-  this.get(subject)[id] = callback;
-  return id;
-};
-
-EventBroker.prototype.clearSubscribe = function(subject, id){
-  this.get(subject)[id] = null;
-};
-
-EventBroker.prototype.count = 0;
-EventBroker.prototype.getNextId = function() {
-  this.count++;
-  return Date.now() + '_' + this.count;
-}
-EventBroker.prototype.create = function(subject){
-  this.subjects[subject] = {}; 
-};
-
-EventBroker.prototype.get = function(subject){
-  if( !this.has(subject) ) {
-    throw new Error("Subject Not Found: "+subject);
+var EventBroker = function() {
+  var subjects = {};
+  var count = 0;
+  
+  function getNextId() {
+    return Date.now() + '_' + (count++);
   }
-
-  return this.subjects[subject];
-};
-
-EventBroker.prototype.has = function(subject){
-  return this.subjects.hasOwnProperty(subject);
-}
-
-EventBroker.prototype.publish = function(subject){
-  var subscriberMap = this.get(subject);
-  var subscribers = Object.keys(subscriberMap).map(function(key){ return subscriberMap[key]; }),
-      args = Array.prototype.slice.call(arguments,1);
-
-  args.splice(0,0, null);
-
-  for(var i = -1, len=subscribers.length; ++i < len; ){
-    if(!subscribers[i]) continue;
-    setTimeout(Function.prototype.bind.apply(subscribers[i], args), 0);   
+  
+  function has(subject) {
+    return subjects.hasOwnProperty(subject);
+  }
+  
+  function get(subject) {
+    if(!has(subject)) {
+      throw new Error("Subject Not Found: " + subject);
+    }
+    return subjects[subject];
+  }
+  
+  function create(subject) {
+    subjects[subject] = {}; 
+  }
+  
+  function subscribe(subject,callback) {
+    var id = getNextId();
+    get(subject)[id] = callback;
+    return id;
+  }
+  
+  function clearSubscribe(subject, id) {
+    get(subject)[id] = null;// FIXME clear key
+  }
+  
+  function publish(subject) {
+    var subscriberMap = get(subject);
+    var subscribers = Object.keys(subscriberMap).map(function(key){ return subscriberMap[key]; });
+    var args = Array.prototype.slice.call(arguments, 1);
+    args.splice(0,0, null);
+    for(var i = 0, len = subscribers.length; i < len; i++){
+      if(!subscribers[i]) continue;
+      setTimeout(Function.prototype.bind.apply(subscribers[i], args), 0);   
+    }
+  }
+  
+  // public methods
+  return {
+    create: create,
+    subscribe: subscribe,
+    clearSubscribe: clearSubscribe,
+    publish: publish,
+    has: has
   };
-};
-
-function Observable(){
-  this.events = new EventBroker();
-  this.on = this.events.subscribe.bind(this.events);
 };
 
 var EventBrokerWrapper = function(events, subject) {
