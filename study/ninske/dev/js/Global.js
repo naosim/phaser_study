@@ -11,7 +11,6 @@ var Global = function(events) {
 	var _score = Score(0);
 	var scoreEvent = EventBrokerWrapper(events, 'score');
 	
-	
 	return {
 		getScore: function() {
 			return _score;
