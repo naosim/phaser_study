@@ -26,8 +26,14 @@ gulp.task('deploy', function(){
   // !はデプロイされない
   var globs = [
     './**',
-    '!./**/*.DS_Store',
-    '!./gulpfile.js',
+    '!./**/.DS_Store',
+	  '!./.git/*',
+    '!./.git/**',
+    '!./**/node_modules/**',
+    '!./.**',
+    '!./**/dev/**',
+    '!./**/gulpfile.js',
+    '!./**/package.json',
     '!./node_modules/**'
   ];
 
