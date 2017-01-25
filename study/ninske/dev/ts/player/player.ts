@@ -34,13 +34,20 @@ module player {
         getplace():Place { return this.place }
         private sprite:Phaser.Sprite;
         getSprite(): Phaser.Sprite { return this.sprite }
+        private weapon:Phaser.Weapon
         private cursors:Phaser.CursorKeys;
         private JUMP_VELOCITY = 200;
         private RUN_VELOCITY = 100;
 
-        constructor(context:Context, sprite:Phaser.Sprite) {
+        constructor(context:Context, sprite:Phaser.Sprite, weapon:Phaser.Weapon) {
             this.context = context;
             this.sprite = sprite;
+            this.weapon = weapon;
+
+            weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+            weapon.fireAngle = 0;
+            weapon.bulletSpeed = 400;
+            weapon.trackSprite(sprite, 16, 16);
 
             context.getGame().physics.arcade.enable(this.sprite);
             this.cursors = context.getGame().input.keyboard.createCursorKeys();
@@ -65,7 +72,7 @@ module player {
 
         // onUpdateで使うことを想定
         private isAir() {
-            !this.sprite.body.blocked.down && this.sprite.body.blocked.left && this.sprite.body.blocked.right
+            return !this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right
         }
 
         // onUpdateで使うことを想定
@@ -81,7 +88,9 @@ module player {
                 this.playerDirection = Direction.left;
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
             } else if(this.isAir()) {
-                console.log("TODO: shoot");
+                this.weapon.fireAngle = this.playerDirection == Direction.right ? 0 : 180;
+                this.weapon.fire();
+                // console.log("TODO: shoot");
             } else if(this.isGround()) {
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
             }
@@ -138,8 +147,9 @@ module player {
         }
 
         create(context:Context) {
-            var sprite = this.context.getGame().add.sprite(32, 0, 'ninsuke_hitarea', 0)            
-            this.playerPhysics = new Physics(this.context, sprite)
+            var weapon = this.context.getGame().add.weapon(3, 'bullet')
+            var sprite = this.context.getGame().add.sprite(32, 0, 'ninsuke_hitarea', 0)
+            this.playerPhysics = new Physics(this.context, sprite, weapon)
         }
 
         update(context:Context) {

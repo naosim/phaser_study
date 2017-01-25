@@ -81,13 +81,18 @@ var player;
     }());
     PlayerAssets.hoge = new Assets("", "");
     var Physics = (function () {
-        function Physics(context, sprite) {
+        function Physics(context, sprite, weapon) {
             this.playerDirection = Direction.right;
             this.place = Place.air;
             this.JUMP_VELOCITY = 200;
             this.RUN_VELOCITY = 100;
             this.context = context;
             this.sprite = sprite;
+            this.weapon = weapon;
+            weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+            weapon.fireAngle = 0;
+            weapon.bulletSpeed = 400;
+            weapon.trackSprite(sprite, 16, 16);
             context.getGame().physics.arcade.enable(this.sprite);
             this.cursors = context.getGame().input.keyboard.createCursorKeys();
             this.sprite.outOfBoundsKill = true;
@@ -107,7 +112,7 @@ var player;
             return !this.sprite.body.blocked.down && this.sprite.body.blocked.right;
         };
         Physics.prototype.isAir = function () {
-            !this.sprite.body.blocked.down && this.sprite.body.blocked.left && this.sprite.body.blocked.right;
+            return !this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right;
         };
         Physics.prototype.isGround = function () {
             return this.sprite.body.blocked.down;
@@ -122,7 +127,8 @@ var player;
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
             }
             else if (this.isAir()) {
-                console.log("TODO: shoot");
+                this.weapon.fireAngle = this.playerDirection == Direction.right ? 0 : 180;
+                this.weapon.fire();
             }
             else if (this.isGround()) {
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
@@ -173,8 +179,9 @@ var player;
             context.getGame().load.spritesheet('ninsuke_hitarea', '../../../common/img/ninsuke2.png', 32, 32);
         };
         Player.prototype.create = function (context) {
+            var weapon = this.context.getGame().add.weapon(3, 'bullet');
             var sprite = this.context.getGame().add.sprite(32, 0, 'ninsuke_hitarea', 0);
-            this.playerPhysics = new Physics(this.context, sprite);
+            this.playerPhysics = new Physics(this.context, sprite, weapon);
         };
         Player.prototype.update = function (context) {
             this.playerPhysics.update();
