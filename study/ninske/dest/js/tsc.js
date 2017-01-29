@@ -7,21 +7,46 @@ var Context = (function () {
     };
     return Context;
 }());
+function string2DArrayToArray(data) {
+    return data.split('\n').map(function (line) { return line.split(',').map(function (v) { return v.trim(); }); });
+}
+function forEach2D(array, callback_i_j_value) {
+    for (var i = 0; i < array.length; i++) {
+        for (var j = 0; j < array[0].length; j++) {
+            callback_i_j_value(i, j, array[i][j]);
+        }
+    }
+}
 var Stage1 = (function () {
     function Stage1() {
     }
     Stage1.prototype.getLayer = function () { return this.layer; };
+    Stage1.prototype.getObstructionGroup = function () { return this.obstructionGroup; };
     Stage1.prototype.preload = function (context) {
-        context.getGame().load.image('coin', '../../../common/img/map.png');
+        context.getGame().load.image('field', 'img/map.png');
+        context.getGame().load.image('obstruction_img', 'img/obstruction.png');
         context.getGame().load.tilemap('map', 'csv/map.csv', null, Phaser.Tilemap.CSV);
+        context.getGame().load.tilemap('obstruction', 'csv/obstruction.csv', null, Phaser.Tilemap.CSV);
     };
     Stage1.prototype.create = function (context) {
-        context.getGame().stage.backgroundColor = "#4488AA";
-        var map = context.getGame().add.tilemap('map', 32, 32);
-        map.addTilesetImage('coin');
+        var _this = this;
+        var game = context.getGame();
+        game.stage.backgroundColor = "#4488AA";
+        var map = game.add.tilemap('map', 32, 32);
+        map.addTilesetImage('field');
         map.setCollisionBetween(1, 10);
         this.layer = map.createLayer(0);
         this.layer.resizeWorld();
+        this.obstructionGroup = game.add.physicsGroup();
+        game.physics.enable(this.obstructionGroup, Phaser.Physics.ARCADE);
+        var ary = string2DArrayToArray(game.cache.getTilemapData('obstruction').data);
+        forEach2D(ary, function (i, j, value) {
+            if (value == '0')
+                return;
+            var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
+            _this.obstructionGroup.add(s);
+            s.body.immovable = true;
+        });
     };
     Stage1.prototype.update = function (context) { };
     Stage1.prototype.render = function (context) { };
@@ -44,6 +69,7 @@ var SimpleGame = (function () {
     };
     SimpleGame.prototype.update = function () {
         this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getLayer(), this.player.getPhysicsEventListener().onHitWall);
+        this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getObstructionGroup(), this.player.getPhysicsEventListener().onHitWall);
         this.player.update(this.context);
     };
     SimpleGame.prototype.render = function () {

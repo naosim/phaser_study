@@ -9,21 +9,49 @@ class Context {
     }
 }
 
+function string2DArrayToArray(data:string):string[][] {
+    return data.split('\n').map((line ) => line.split(',').map(v => v.trim()));
+}
+
+function forEach2D(array:string[][], callback_i_j_value:(i:number,j:number,value:string)=>void) {
+    for(var i = 0; i < array.length; i++) {
+        for(var j = 0; j < array[0].length; j++) {
+            callback_i_j_value(i, j, array[i][j])
+        } 
+    }
+}
+
 class Stage1 implements PhaserLifeCycle {
     layer: Phaser.TilemapLayer;
+    obstructionGroup: Phaser.Group;
+
     getLayer():Phaser.TilemapLayer { return this.layer }
+    getObstructionGroup():Phaser.Group { return this.obstructionGroup }
     preload(context:Context) {
-        context.getGame().load.image('coin', '../../../common/img/map.png');
+        context.getGame().load.image('field', 'img/map.png');
+        context.getGame().load.image('obstruction_img', 'img/obstruction.png');
         context.getGame().load.tilemap('map', 'csv/map.csv', null, Phaser.Tilemap.CSV);
+        context.getGame().load.tilemap('obstruction', 'csv/obstruction.csv', null, Phaser.Tilemap.CSV);
     }
     create(context:Context):void {
-        context.getGame().stage.backgroundColor = "#4488AA";
-        var map = context.getGame().add.tilemap('map', 32, 32);
-        map.addTilesetImage('coin');
+        var game = context.getGame();
+        game.stage.backgroundColor = "#4488AA";
+        var map = game.add.tilemap('map', 32, 32);
+        map.addTilesetImage('field');
         map.setCollisionBetween(1, 10);
         this.layer = map.createLayer(0);
         this.layer.resizeWorld();
-        // this.layer.debug = true;
+
+        
+        this.obstructionGroup = game.add.physicsGroup();
+        game.physics.enable(this.obstructionGroup, Phaser.Physics.ARCADE);
+        var ary = string2DArrayToArray(game.cache.getTilemapData('obstruction').data);
+        forEach2D(ary, (i, j , value) => {
+            if(value == '0') return;
+            var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
+            this.obstructionGroup.add(s);
+            s.body.immovable = true;
+        })
     }
     update(context:Context):void {}
     render(context:Context):void {}
@@ -69,6 +97,12 @@ class SimpleGame {
         this.game.physics.arcade.collide(
             this.player.getSprite(), 
             this.stage1.getLayer(), 
+            this.player.getPhysicsEventListener().onHitWall
+        );
+
+        this.game.physics.arcade.collide(
+            this.player.getSprite(), 
+            this.stage1.getObstructionGroup(), 
             this.player.getPhysicsEventListener().onHitWall
         );
         this.player.update(this.context);
