@@ -51,6 +51,7 @@ class Stage1 implements PhaserLifeCycle {
             var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
             this.obstructionGroup.add(s);
             s.body.immovable = true;
+            s.body.bounce.set(0, 0)
         })
     }
     update(context:Context):void {}

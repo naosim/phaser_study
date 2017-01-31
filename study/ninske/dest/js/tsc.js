@@ -46,6 +46,7 @@ var Stage1 = (function () {
             var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
             _this.obstructionGroup.add(s);
             s.body.immovable = true;
+            s.body.bounce.set(0, 0);
         });
     };
     Stage1.prototype.update = function (context) { };
@@ -132,16 +133,25 @@ var player;
         Physics.prototype.getplace = function () { return this.place; };
         Physics.prototype.getSprite = function () { return this.sprite; };
         Physics.prototype.isLeftWall = function () {
-            return !this.sprite.body.blocked.down && this.sprite.body.blocked.left;
+            return !this.isTouchingDown() && this.isTouchingLeft();
         };
         Physics.prototype.isRightWall = function () {
-            return !this.sprite.body.blocked.down && this.sprite.body.blocked.right;
+            return !this.isTouchingDown() && this.isTouchingRight();
         };
         Physics.prototype.isAir = function () {
-            return !this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right;
+            return !this.isTouchingDown() && !this.isTouchingLeft() && !this.isTouchingRight();
         };
         Physics.prototype.isGround = function () {
-            return this.sprite.body.blocked.down;
+            return this.sprite.body.blocked.down || this.sprite.body.touching.down;
+        };
+        Physics.prototype.isTouchingDown = function () {
+            return this.sprite.body.blocked.down || this.sprite.body.touching.down;
+        };
+        Physics.prototype.isTouchingLeft = function () {
+            return this.sprite.body.blocked.left || this.sprite.body.touching.left;
+        };
+        Physics.prototype.isTouchingRight = function () {
+            return this.sprite.body.blocked.right || this.sprite.body.touching.right;
         };
         Physics.prototype.onAction = function () {
             if (this.isLeftWall()) {
@@ -155,38 +165,35 @@ var player;
             else if (this.isAir()) {
                 this.weapon.fireAngle = this.playerDirection == Direction.right ? 0 : 180;
                 this.weapon.fire();
+                console.log("TODO: shoot");
             }
             else if (this.isGround()) {
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
             }
+            console.log(this.isTouchingDown(), this.isAir(), this.isRightWall());
         };
         Physics.prototype.onHitWall = function () {
         };
         Physics.prototype.update = function () {
-            if (this.sprite.body.blocked.down) {
-                if (this.sprite.body.blocked.left) {
+            if (this.isTouchingDown()) {
+                if (this.isTouchingLeft()) {
                     this.playerDirection = Direction.right;
                 }
-                else if (this.sprite.body.blocked.right) {
+                else if (this.isTouchingRight()) {
                     this.playerDirection = Direction.left;
                 }
             }
-            if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
-                this.sprite.body.acceleration.y = 150 - this.sprite.body.velocity.y * 0.5;
-            }
-            else {
-                this.sprite.body.acceleration.y = 300;
-            }
+            this.sprite.body.acceleration.y = 300;
             if (this.playerDirection == Direction.right) {
                 this.sprite.body.velocity.x = this.RUN_VELOCITY;
             }
             else {
                 this.sprite.body.velocity.x = -this.RUN_VELOCITY;
             }
-            if (this.sprite.body.blocked.down) {
+            if (this.isTouchingDown()) {
                 this.place = Place.ground;
             }
-            else if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
+            else if (this.isTouchingLeft() || this.isTouchingRight()) {
                 this.place = Place.wall;
             }
             else {

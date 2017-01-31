@@ -62,22 +62,34 @@ module player {
 
         // onUpdateで使うことを想定
         private isLeftWall() {
-            return !this.sprite.body.blocked.down && this.sprite.body.blocked.left
+            return !this.isTouchingDown() && this.isTouchingLeft();
         }
 
         // onUpdateで使うことを想定
         private isRightWall() {
-            return !this.sprite.body.blocked.down && this.sprite.body.blocked.right
+            return !this.isTouchingDown() && this.isTouchingRight();
         }
 
         // onUpdateで使うことを想定
         private isAir() {
-            return !this.sprite.body.blocked.down && !this.sprite.body.blocked.left && !this.sprite.body.blocked.right
+            return !this.isTouchingDown() && !this.isTouchingLeft() && !this.isTouchingRight()
         }
 
         // onUpdateで使うことを想定
         private isGround() {
-            return this.sprite.body.blocked.down
+            return this.sprite.body.blocked.down || this.sprite.body.touching.down
+        }
+
+        private isTouchingDown(): boolean {
+            return this.sprite.body.blocked.down || this.sprite.body.touching.down;
+        }
+
+        private isTouchingLeft(): boolean {
+            return this.sprite.body.blocked.left || this.sprite.body.touching.left;
+        }
+
+        private isTouchingRight(): boolean {
+            return this.sprite.body.blocked.right || this.sprite.body.touching.right
         }
 
         onAction() {
@@ -90,10 +102,11 @@ module player {
             } else if(this.isAir()) {
                 this.weapon.fireAngle = this.playerDirection == Direction.right ? 0 : 180;
                 this.weapon.fire();
-                // console.log("TODO: shoot");
+                console.log("TODO: shoot");
             } else if(this.isGround()) {
                 this.sprite.body.velocity.y = -this.JUMP_VELOCITY;
             }
+            console.log(this.isTouchingDown(), this.isAir(), this.isRightWall());
         }
 
         onHitWall() {
@@ -101,18 +114,20 @@ module player {
         }
 
         update() {
-            if(this.sprite.body.blocked.down) {
-                if(this.sprite.body.blocked.left) {
+            if(this.isTouchingDown()) {
+                if(this.isTouchingLeft()) {
                     this.playerDirection = Direction.right;
-                } else if(this.sprite.body.blocked.right) {
+                } else if(this.isTouchingRight()) {
                     this.playerDirection = Direction.left;
                 }
             }
-            if(this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
-                this.sprite.body.acceleration.y = 150 - this.sprite.body.velocity.y * 0.5;
-            } else {
-                this.sprite.body.acceleration.y = 300;
-            }
+            // if(this.isTouchingLeft() || this.isTouchingRight()) {
+            //     this.sprite.body.acceleration.y = 150 - this.sprite.body.velocity.y * 0.5;
+            // } else {
+            //     this.sprite.body.acceleration.y = 300;
+            // }
+
+            this.sprite.body.acceleration.y = 300;
 
             if(this.playerDirection == Direction.right) {
                 this.sprite.body.velocity.x = this.RUN_VELOCITY;
@@ -120,9 +135,9 @@ module player {
                 this.sprite.body.velocity.x = -this.RUN_VELOCITY;
             }
 
-            if(this.sprite.body.blocked.down) {
+            if(this.isTouchingDown()) {
                 this.place = Place.ground
-            } else if(this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
+            } else if(this.isTouchingLeft() || this.isTouchingRight()) {
                 this.place = Place.wall
             } else {
                 this.place = Place.air
