@@ -35,6 +35,7 @@ module player {
         private sprite:Phaser.Sprite;
         getSprite(): Phaser.Sprite { return this.sprite }
         private weapon:Phaser.Weapon
+        getWeapn(): Phaser.Weapon { return this.weapon }
         private cursors:Phaser.CursorKeys;
         private JUMP_VELOCITY = 200;
         private RUN_VELOCITY = 100;
@@ -155,6 +156,7 @@ module player {
         private playerPhysics:Physics;
         getPhysicsEventListener():PhysicsEventListener{ return this.playerPhysics }
         getSprite(): Phaser.Sprite { return this.playerPhysics.getSprite() }
+        getWeapn(): Phaser.Weapon { return this.playerPhysics.getWeapn() }
 
         preload(context:Context) {
             this.context = context;

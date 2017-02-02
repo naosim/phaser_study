@@ -44,6 +44,7 @@ var Stage1 = (function () {
             if (value == '0')
                 return;
             var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
+            s.health = 3;
             _this.obstructionGroup.add(s);
             s.body.immovable = true;
             s.body.bounce.set(0, 0);
@@ -71,6 +72,10 @@ var SimpleGame = (function () {
     SimpleGame.prototype.update = function () {
         this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getLayer(), this.player.getPhysicsEventListener().onHitWall);
         this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getObstructionGroup(), this.player.getPhysicsEventListener().onHitWall);
+        this.game.physics.arcade.overlap(this.player.getWeapn().bullets, this.stage1.getObstructionGroup(), function (bullet, brock) {
+            bullet.kill();
+            brock.damage(1);
+        });
         this.player.update(this.context);
     };
     SimpleGame.prototype.render = function () {
@@ -132,6 +137,7 @@ var player;
         Physics.prototype.getDirection = function () { return this.playerDirection; };
         Physics.prototype.getplace = function () { return this.place; };
         Physics.prototype.getSprite = function () { return this.sprite; };
+        Physics.prototype.getWeapn = function () { return this.weapon; };
         Physics.prototype.isLeftWall = function () {
             return !this.isTouchingDown() && this.isTouchingLeft();
         };
@@ -207,6 +213,7 @@ var player;
         }
         Player.prototype.getPhysicsEventListener = function () { return this.playerPhysics; };
         Player.prototype.getSprite = function () { return this.playerPhysics.getSprite(); };
+        Player.prototype.getWeapn = function () { return this.playerPhysics.getWeapn(); };
         Player.prototype.preload = function (context) {
             this.context = context;
             context.getGame().load.spritesheet('ninsuke_hitarea', '../../../common/img/ninsuke2.png', 32, 32);

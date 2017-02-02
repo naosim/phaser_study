@@ -49,6 +49,7 @@ class Stage1 implements PhaserLifeCycle {
         forEach2D(ary, (i, j , value) => {
             if(value == '0') return;
             var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
+            s.health = 3
             this.obstructionGroup.add(s);
             s.body.immovable = true;
             s.body.bounce.set(0, 0)
@@ -106,6 +107,23 @@ class SimpleGame {
             this.stage1.getObstructionGroup(), 
             this.player.getPhysicsEventListener().onHitWall
         );
+
+        // this.game.physics.arcade.collide(
+        //     this.player.getWeapn().bullets, 
+        //     this.stage1.getObstructionGroup(), 
+            
+        // );
+
+        this.game.physics.arcade.overlap(
+            this.player.getWeapn().bullets, 
+            this.stage1.getObstructionGroup(), 
+            (bullet:Phaser.Bullet, brock:Phaser.Sprite) => {
+                bullet.kill()
+                brock.damage(1)
+            }
+        );
+
+        
         this.player.update(this.context);
     }
 
