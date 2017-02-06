@@ -44,7 +44,7 @@ var Stage1 = (function () {
             if (value == '0')
                 return;
             var s = game.add.sprite(j * 32, i * 32, 'obstruction_img');
-            s.health = 3;
+            s.health = 1;
             _this.obstructionGroup.add(s);
             s.body.immovable = true;
             s.body.bounce.set(0, 0);
@@ -72,6 +72,9 @@ var SimpleGame = (function () {
     SimpleGame.prototype.update = function () {
         this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getLayer(), this.player.getPhysicsEventListener().onHitWall);
         this.game.physics.arcade.collide(this.player.getSprite(), this.stage1.getObstructionGroup(), this.player.getPhysicsEventListener().onHitWall);
+        this.game.physics.arcade.collide(this.player.getWeapn().bullets, this.stage1.getLayer(), function (bullet, brock) {
+            bullet.kill();
+        });
         this.game.physics.arcade.overlap(this.player.getWeapn().bullets, this.stage1.getObstructionGroup(), function (bullet, brock) {
             bullet.kill();
             brock.damage(1);
